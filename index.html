@@ -209,23 +209,26 @@
   }
 
   .featured-wrap {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
   }
   .featured {
     width: 100%;
-    max-width: 520px;
     background: linear-gradient(135deg, var(--card) 0%, var(--bg-soft) 100%);
     border: 1px solid var(--border-strong);
     border-radius: 4px;
-    padding: 40px 36px;
+    padding: 32px 28px;
     text-decoration: none;
     color: inherit;
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
     cursor: pointer;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 260px;
   }
   .featured::before {
     content: "";
@@ -262,18 +265,18 @@
     z-index: 1;
   }
   .featured-title {
-    font-size: 1.8rem;
+    font-size: 1.35rem;
     font-weight: 600;
     margin: 12px 0 10px;
-    line-height: 1.2;
+    line-height: 1.25;
     position: relative;
     z-index: 1;
   }
   .featured-desc {
     color: var(--muted);
-    font-size: 1rem;
-    line-height: 1.6;
-    margin-bottom: 24px;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 20px;
     position: relative;
     z-index: 1;
   }
@@ -299,14 +302,14 @@
 
   @media (max-width: 900px) {
     .row { grid-template-columns: repeat(2, 1fr); }
+    .featured-wrap { grid-template-columns: 1fr; }
     h1 { font-size: 2.4rem; }
   }
   @media (max-width: 520px) {
     body { padding: 32px 16px 60px; }
     .row { grid-template-columns: 1fr; }
     h1 { font-size: 2rem; }
-    .featured { padding: 28px 24px; }
-    .featured-title { font-size: 1.5rem; }
+    .featured { padding: 28px 24px; min-height: 0; }
   }
 </style>
 </head>
@@ -362,10 +365,34 @@
 
   <div class="featured-wrap">
     <a class="featured" href="objetivos.html">
-      <div class="featured-num">05 · ACTIVO</div>
-      <div class="featured-title">Seguimiento de Objetivos</div>
-      <div class="featured-desc">
-        Retos y habilidades individuales del equipo. Selecciona persona para ver y actualizar sus métricas de progreso.
+      <div>
+        <div class="featured-num">05 · ACTIVO</div>
+        <div class="featured-title">Seguimiento de Objetivos</div>
+        <div class="featured-desc">
+          Retos y habilidades individuales. Métricas de progreso por persona y vista global del equipo.
+        </div>
+      </div>
+      <span class="featured-cta">Entrar →</span>
+    </a>
+
+    <a class="featured" href="perfil.html">
+      <div>
+        <div class="featured-num">06 · ACTIVO</div>
+        <div class="featured-title">Perfil Complementario</div>
+        <div class="featured-desc">
+          Tipo de persona con la que cada miembro se complementa mejor para trabajar.
+        </div>
+      </div>
+      <span class="featured-cta">Entrar →</span>
+    </a>
+
+    <a class="featured" href="cancion.html">
+      <div>
+        <div class="featured-num">07 · ACTIVO</div>
+        <div class="featured-title">Canción del Momento</div>
+        <div class="featured-desc">
+          La canción que define al equipo hoy y la que lo definirá en 6 meses.
+        </div>
       </div>
       <span class="featured-cta">Entrar →</span>
     </a>
