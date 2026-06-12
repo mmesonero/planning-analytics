@@ -39,7 +39,7 @@
     pointer-events: none;
     z-index: 0;
   }
-  .container { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .container { max-width: 1000px; margin: 0 auto; position: relative; z-index: 1; }
   .top-bar {
     display: flex;
     justify-content: space-between;
@@ -57,53 +57,21 @@
   h1 { font-size: 2rem; font-weight: 600; margin-bottom: 8px; line-height: 1.2; }
   .subtitle { color: var(--muted); margin-bottom: 32px; }
 
-  .selector-wrap {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 20px;
-    margin-bottom: 24px;
-  }
-  label {
-    display: block;
-    color: var(--muted);
-    font-size: 0.85rem;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  select {
-    width: 100%;
-    background: var(--bg);
-    color: var(--text);
-    border: 1px solid var(--border-strong);
-    border-radius: 4px;
-    padding: 12px 14px;
-    font-size: 1rem;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='12' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239a9a9a' stroke-width='2' fill='none'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 40px;
-  }
-  select:focus { outline: none; border-color: var(--accent); }
-
-  .songs-grid {
+  .columns {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 24px;
+    gap: 20px;
   }
-  .song-card {
+
+  .column {
     background: linear-gradient(135deg, var(--card) 0%, var(--bg-soft) 100%);
     border: 1px solid var(--border-strong);
     border-radius: 4px;
-    padding: 24px;
+    padding: 28px 24px;
     position: relative;
     overflow: hidden;
   }
-  .song-card::before {
+  .column::before {
     content: "";
     position: absolute;
     top: 0;
@@ -112,86 +80,44 @@
     width: 100%;
     background: var(--accent);
   }
-  .song-card .when {
-    font-size: 0.75rem;
-    color: var(--muted);
+  .column h2 {
+    font-size: 0.85rem;
+    color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 0.15em;
-    margin-bottom: 12px;
-    font-weight: 600;
+    margin-bottom: 4px;
+    font-weight: 700;
   }
-  .song-card .song {
-    font-size: 1.05rem;
-    line-height: 1.5;
-    color: var(--text);
-  }
-  .song-card .song.empty { color: var(--muted); font-style: italic; font-size: 0.9rem; }
-
-  .global-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 24px;
-    margin-top: 32px;
-  }
-  .global-card h2 {
-    font-size: 0.95rem;
+  .column .when-label {
     color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin: 0;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
   }
-  .global-row {
+
+  .row {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 14px;
     padding: 14px 0;
     border-bottom: 1px solid var(--border);
+    align-items: baseline;
   }
-  .global-row:last-child { border-bottom: none; }
-  .global-row .name {
+  .row:last-child { border-bottom: none; }
+  .row .name {
     font-weight: 600;
-    color: var(--accent);
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    color: var(--text);
+    font-size: 0.95rem;
   }
-  .global-row .pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    font-size: 0.92rem;
-  }
-  .global-row .pair > div { color: var(--text); line-height: 1.45; }
-  .global-row .pair .lbl {
-    font-size: 0.7rem;
+  .row .song {
     color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 4px;
-    display: block;
+    font-size: 0.95rem;
+    line-height: 1.45;
   }
+  .row .song.empty { font-style: italic; color: #555; font-size: 0.85rem; }
 
-  .toggle-btn {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border-strong);
-    border-radius: 2px;
-    padding: 8px 16px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: inherit;
-  }
-  .toggle-btn:hover { color: var(--text); border-color: var(--accent); }
-
-  .empty {
-    color: var(--muted);
-    font-style: italic;
-    text-align: center;
-    padding: 40px 20px;
-  }
-  @media (max-width: 600px) {
-    .songs-grid { grid-template-columns: 1fr; }
-    .global-row .pair { grid-template-columns: 1fr; }
+  @media (max-width: 700px) {
+    .columns { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 90px 1fr; gap: 10px; }
   }
 </style>
 </head>
@@ -204,21 +130,17 @@
   <h1>Canción del Momento</h1>
   <p class="subtitle">Una canción que defina al equipo hoy y en 6 meses.</p>
 
-  <div class="selector-wrap">
-    <label for="person">Persona</label>
-    <select id="person">
-      <option value="">— Elige una persona —</option>
-    </select>
-  </div>
-
-  <div id="content"></div>
-
-  <div class="global-card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <h2>Resumen del equipo</h2>
-      <button class="toggle-btn" id="toggleAll">Ver todas</button>
+  <div class="columns">
+    <div class="column">
+      <h2>Hoy</h2>
+      <div class="when-label">Cómo está el equipo ahora</div>
+      <div id="listHoy"></div>
     </div>
-    <div id="globalList" style="display:none;"></div>
+    <div class="column">
+      <h2>En 6 meses</h2>
+      <div class="when-label">Hacia dónde vamos</div>
+      <div id="listFuturo"></div>
+    </div>
   </div>
 </div>
 
@@ -233,11 +155,11 @@ const DATA = {
     futuro: ""
   },
   "Blanca": {
-    hoy: "We Are All In This Together (High School Musical)",
+    hoy: "We Are All In This Together (HSM)",
     futuro: "We Are The Champions (Queen)"
   },
   "Claudia": {
-    hoy: "Ojos de Tigre — esfuerzo, remar, entrenar",
+    hoy: "Ojos de Tigre",
     futuro: "Superestrella"
   },
   "Manu": {
@@ -250,7 +172,7 @@ const DATA = {
   },
   "Jesús": {
     hoy: "Sad Flow Vibes",
-    futuro: "Dancing for Summer (01/07/2025)"
+    futuro: "Dancing for Summer"
   },
   "Alba": {
     hoy: "I Will Survive (Gloria Gaynor)",
@@ -266,58 +188,19 @@ const DATA = {
   }
 };
 
-function renderPerson(person) {
-  const content = document.getElementById("content");
-  if (!person) { content.innerHTML = '<div class="empty">Elige una persona en el selector.</div>'; return; }
-  const p = DATA[person];
-  content.innerHTML = `
-    <div class="songs-grid">
-      <div class="song-card">
-        <div class="when">Hoy</div>
-        <div class="song ${p.hoy ? '' : 'empty'}">${p.hoy || 'Sin respuesta'}</div>
-      </div>
-      <div class="song-card">
-        <div class="when">En 6 meses</div>
-        <div class="song ${p.futuro ? '' : 'empty'}">${p.futuro || 'Sin respuesta'}</div>
-      </div>
-    </div>
-  `;
-}
-
-function renderGlobal() {
-  const list = document.getElementById("globalList");
-  list.innerHTML = Object.entries(DATA).map(([name, p]) => `
-    <div class="global-row">
+function renderList(elId, key) {
+  const el = document.getElementById(elId);
+  el.innerHTML = Object.entries(DATA).map(([name, p]) => {
+    const v = p[key];
+    return `<div class="row">
       <div class="name">${name}</div>
-      <div class="pair">
-        <div><span class="lbl">Hoy</span>${p.hoy || '<em style="color:var(--muted);">Sin respuesta</em>'}</div>
-        <div><span class="lbl">En 6 meses</span>${p.futuro || '<em style="color:var(--muted);">Sin respuesta</em>'}</div>
-      </div>
-    </div>
-  `).join("");
+      <div class="song ${v ? '' : 'empty'}">${v || '— sin respuesta —'}</div>
+    </div>`;
+  }).join("");
 }
 
-function init() {
-  const select = document.getElementById("person");
-  Object.keys(DATA).forEach(name => {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    select.appendChild(opt);
-  });
-  select.addEventListener("change", e => renderPerson(e.target.value));
-  renderPerson("");
-  renderGlobal();
-
-  const btn = document.getElementById("toggleAll");
-  const list = document.getElementById("globalList");
-  btn.addEventListener("click", () => {
-    const open = list.style.display === "block";
-    list.style.display = open ? "none" : "block";
-    btn.textContent = open ? "Ver todas" : "Ocultar";
-  });
-}
-init();
+renderList("listHoy", "hoy");
+renderList("listFuturo", "futuro");
 </script>
 </body>
 </html>
