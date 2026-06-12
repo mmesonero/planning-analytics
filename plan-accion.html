@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Plan de Acción IA · Planning & Analytics</title>
+<style>
+  :root {
+    --bg: #000000;
+    --bg-soft: #0a0a0a;
+    --card: #141414;
+    --card-hover: #1c1c1c;
+    --border: #262626;
+    --border-strong: #3a3a3a;
+    --text: #ffffff;
+    --muted: #9a9a9a;
+    --accent: #86BC25;
+    --accent-hover: #b5dc42;
+    --accent-glow: rgba(134, 188, 37, 0.25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 24px 80px;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    top: -200px;
+    right: -200px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .container { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .top-bar { margin-bottom: 32px; }
+  .back-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--text); }
+
+  h1 { font-size: 2rem; font-weight: 600; margin-bottom: 8px; line-height: 1.2; }
+  .subtitle { color: var(--muted); margin-bottom: 32px; }
+
+  .step {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .step::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 100%;
+    background: var(--accent);
+  }
+  .step-num {
+    display: inline-block;
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 12px;
+  }
+  .step h2 { font-size: 1.15rem; margin-bottom: 8px; }
+  .step .desc { color: var(--muted); font-size: 0.92rem; margin-bottom: 16px; line-height: 1.5; }
+
+  label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  select {
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='12' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239a9a9a' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+  }
+  select:focus { outline: none; border-color: var(--accent); }
+
+  .prompt-box {
+    background: var(--bg-soft);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    padding: 20px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    color: #d4d8df;
+    max-height: 500px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+  }
+  .prompt-empty {
+    color: var(--muted);
+    font-style: italic;
+    font-family: inherit;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #86BC25 !important;
+    color: #000 !important;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 2px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-family: inherit;
+  }
+  .btn:hover {
+    background-color: #b5dc42 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(134, 188, 37, 0.5);
+  }
+  .btn.ghost {
+    background-color: transparent !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border-strong);
+  }
+  .btn.ghost:hover {
+    background-color: transparent !important;
+    border-color: var(--accent);
+    color: var(--accent) !important;
+  }
+  .btn.copied {
+    background-color: #4a7c0e !important;
+    color: #fff !important;
+  }
+
+  .ai-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .ai-link {
+    background: var(--bg-soft);
+    border: 1px solid var(--border-strong);
+    border-radius: 4px;
+    padding: 16px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .ai-link:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .ai-link .ai-name { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
+  .ai-link .ai-sub { color: var(--muted); font-size: 0.8rem; }
+
+  @media (max-width: 600px) {
+    .ai-links { grid-template-columns: 1fr; }
+    h1 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="top-bar">
+    <a href="index.html" class="back-link">← Volver al panel</a>
+  </div>
+
+  <h1>Plan de Acción con IA</h1>
+  <p class="subtitle">Genera tu plan personalizado a partir de tus objetivos y úsalo con ChatGPT, Claude o Copilot.</p>
+
+  <div class="step">
+    <div class="step-num">PASO 1</div>
+    <h2>Elige quién eres</h2>
+    <div class="desc">Cargamos tus retos y habilidades del cuestionario.</div>
+    <label for="person">Persona</label>
+    <select id="person">
+      <option value="">— Elige una persona —</option>
+    </select>
+  </div>
+
+  <div class="step">
+    <div class="step-num">PASO 2</div>
+    <h2>Copia este prompt</h2>
+    <div class="desc">Generado automáticamente con tus objetivos. Lo pegas tal cual en la IA que prefieras.</div>
+    <div class="prompt-box" id="promptBox"><div class="prompt-empty">Elige una persona arriba para generar el prompt.</div></div>
+    <div class="btn-row">
+      <button class="btn" id="copyBtn" disabled>📋 Copiar prompt</button>
+      <button class="btn ghost" id="regenBtn" disabled>↻ Regenerar</button>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">PASO 3</div>
+    <h2>Pégalo en tu IA</h2>
+    <div class="desc">Abre tu herramienta favorita, pega el prompt y deja que te construya el plan.</div>
+    <div class="ai-links">
+      <a class="ai-link" href="https://chat.openai.com/" target="_blank" rel="noopener">
+        <div class="ai-name">ChatGPT</div>
+        <div class="ai-sub">chat.openai.com ↗</div>
+      </a>
+      <a class="ai-link" href="https://claude.ai/" target="_blank" rel="noopener">
+        <div class="ai-name">Claude</div>
+        <div class="ai-sub">claude.ai ↗</div>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  "Luis": {
+    retos: ["Presentar Activos a internacional (Febrero)", "4 Proyectos nuevos (Junio)"],
+    habilidades: ["Venta (Febrero)", "Estrategia (Abril)"]
+  },
+  "Alejandra": {
+    retos: ["Aprender de varios módulos de WD (seguridad, recruiting en esade, etc)"],
+    habilidades: [
+      "Mejor toma de decisiones, no tener dudas por falta de confianza (antes de Marzo 2026)",
+      "Más autonomía (antes de Marzo 2026)"
+    ]
+  },
+  "Blanca": {
+    retos: [
+      "Entendimiento/Conocimiento técnico más completo de compensación (Marzo)",
+      "Capacidad técnica para desarrollar adaptive y proyectos nuevos (Junio)",
+      "Alguna Certificación"
+    ],
+    habilidades: [
+      "Más independencia en tareas (Febrero)",
+      "Más roles de responsabilidad, autonomía e independencia en gestión de cliente y desarrollo de proyecto (Junio)",
+      "Más organización en desarrollo de proyectos"
+    ]
+  },
+  "Claudia": {
+    retos: [
+      "Optimización Seguridad",
+      "Llevar más de un 50% de cosas vistas",
+      "Pablo Referente (Junio)",
+      "Montar 2 informes Octavio (Enero)"
+    ],
+    habilidades: [
+      "Formar a Pablo (Marzo)",
+      "Organización y priorizar — cumplir con lo que me pongo (Junio)"
+    ]
+  },
+  "Adrian": {
+    retos: ["Entregar de manera satisfactoria la solución de AP a ESADE"],
+    habilidades: [
+      "Manejarme con fluidez e intención en WD",
+      "Obtener una visión global del proceso completo de una solución de WD (propuesta → go live)"
+    ]
+  },
+  "Manu": {
+    retos: ["Implementación IBE todo controlado", "Cliente de Picar (Febrero) — Internacional o BI"],
+    habilidades: [
+      "Story Telling (Junio)",
+      "Organización y Planificación",
+      "Mejora BI e IA (Técnico)",
+      "Guiar reunión con cliente complicado"
+    ]
+  },
+  "Jesús": {
+    retos: ["Volver a encontrar \"el hambre\"", "Completar con éxito formaciones a cliente"],
+    habilidades: ["Construcción y conocimiento IA", "Más conocimiento Prism"]
+  },
+  "Alba": {
+    retos: ["Aprender y tener + autonomía con PRISM (antes de Junio)", "Poder generar ideas de informes por mi cuenta (Junio)"],
+    habilidades: ["Seguridad al hablar en reuniones", "Mejor gestión del tiempo", "Mejorar la organización de mis recursos"]
+  },
+  "Pablo": {
+    retos: ["Independencia para realizar tareas cotidianas (Enero)"],
+    habilidades: ["Más soltura a la hora de realizar las tareas", "Mejorar habilidades para realizar PPT (Abril)"]
+  },
+  "Alvaro": {
+    retos: ["Venta de compensación con éxito (Marzo)"],
+    habilidades: ["Organización y planificación Comercial"]
+  }
+};
+
+function buildPrompt(person) {
+  const p = DATA[person];
+  if (!p) return "";
+  const retos = p.retos.map((r, i) => `${i + 1}. ${r}`).join("\n");
+  const habilidades = p.habilidades.map((h, i) => `${i + 1}. ${h}`).join("\n");
+
+  return `Actúa como mi coach de desarrollo profesional dentro del equipo de Planning & Analytics.
+
+Soy ${person}. Estos son mis objetivos para los próximos 6 meses:
+
+RETOS A ALCANZAR:
+${retos}
+
+HABILIDADES A DESARROLLAR:
+${habilidades}
+
+Construye un PLAN DE ACCIÓN concreto y realista con:
+
+1. Diagnóstico breve: qué bloqueos típicos puedo encontrar y cómo mitigarlos.
+2. Roadmap mes a mes (6 meses), con hitos medibles para cada reto y habilidad.
+3. Rutinas semanales: máximo 3 hábitos clave que me llevarán hacia los objetivos.
+4. Recursos sugeridos: libros, cursos, herramientas (incluyendo IA) y personas con las que apoyarme.
+5. Métricas de seguimiento: cómo sabré cada mes que voy por buen camino.
+6. 3 preguntas críticas que debo hacerme cada viernes para auto-evaluarme.
+
+Sé directo, prioriza lo que tendrá más impacto y evita generalidades. Si necesitas más contexto sobre mi rol o mi día a día, pregúntame antes de generar el plan.`;
+}
+
+const promptBox = document.getElementById("promptBox");
+const copyBtn = document.getElementById("copyBtn");
+const regenBtn = document.getElementById("regenBtn");
+const select = document.getElementById("person");
+
+Object.keys(DATA).forEach(name => {
+  const opt = document.createElement("option");
+  opt.value = name;
+  opt.textContent = name;
+  select.appendChild(opt);
+});
+
+let currentPrompt = "";
+
+function render(person) {
+  if (!person) {
+    promptBox.innerHTML = '<div class="prompt-empty">Elige una persona arriba para generar el prompt.</div>';
+    copyBtn.disabled = true;
+    regenBtn.disabled = true;
+    currentPrompt = "";
+    return;
+  }
+  currentPrompt = buildPrompt(person);
+  promptBox.textContent = currentPrompt;
+  copyBtn.disabled = false;
+  regenBtn.disabled = false;
+}
+
+select.addEventListener("change", e => render(e.target.value));
+
+copyBtn.addEventListener("click", async () => {
+  if (!currentPrompt) return;
+  try {
+    await navigator.clipboard.writeText(currentPrompt);
+    copyBtn.classList.add("copied");
+    copyBtn.textContent = "✓ Copiado";
+    setTimeout(() => {
+      copyBtn.classList.remove("copied");
+      copyBtn.textContent = "📋 Copiar prompt";
+    }, 1800);
+  } catch (e) {
+    // fallback selección manual
+    const range = document.createRange();
+    range.selectNodeContents(promptBox);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+});
+
+regenBtn.addEventListener("click", () => render(select.value));
+</script>
+</body>
+</html>
