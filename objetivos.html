@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Seguimiento de Objetivos · EIB</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #1a1d24;
+    --card-hover: #232730;
+    --border: #2a2f3a;
+    --text: #e8eaed;
+    --muted: #8a94a6;
+    --accent: #6366f1;
+    --accent-hover: #818cf8;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 24px 120px;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+  .back-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--text); }
+
+  h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+  .subtitle { color: var(--muted); margin-bottom: 32px; }
+
+  .selector-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  label {
+    display: block;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  select {
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='12' height='8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a94a6' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+  }
+  select:focus { outline: none; border-color: var(--accent); }
+
+  .summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .stat-label {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .stat-value { font-size: 2.2rem; font-weight: 700; }
+  .stat-value.success { color: var(--success); }
+  .stat-value.warning { color: var(--warning); }
+  .stat-value.danger { color: var(--danger); }
+
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .section h2 {
+    font-size: 1.15rem;
+    margin-bottom: 16px;
+    color: var(--accent-hover);
+  }
+
+  .goal { padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .goal:last-child { border-bottom: none; padding-bottom: 0; }
+  .goal:first-child { padding-top: 0; }
+
+  .goal-text { font-size: 0.98rem; margin-bottom: 10px; line-height: 1.5; }
+  .goal-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--text);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--text);
+  }
+  .pct {
+    min-width: 52px;
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .save-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(15, 17, 21, 0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    z-index: 100;
+  }
+  .save-status {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .save-status.dirty { color: var(--warning); }
+  .save-status.saved { color: var(--success); }
+  .btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover:not(:disabled) {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+  .btn:disabled {
+    background: var(--border);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .global-card {
+    background: linear-gradient(135deg, #1a1d24 0%, #232730 100%);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .global-card h2 {
+    font-size: 0.95rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+  }
+  .global-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+  }
+  .global-row:last-child { border-bottom: none; }
+  .global-row .name { color: var(--text); }
+  .global-row .pct-small { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .global-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-top: 2px solid var(--accent);
+  }
+  .global-total .name { font-weight: 600; }
+  .global-total .pct-small { font-size: 1.5rem; color: var(--accent-hover); }
+
+  .empty {
+    color: var(--muted);
+    font-style: italic;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  @media (max-width: 600px) {
+    .summary { grid-template-columns: 1fr; }
+    h1 { font-size: 1.6rem; }
+    .save-bar { flex-direction: column; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="top-bar">
+    <a href="index.html" class="back-link">← Volver al panel</a>
+  </div>
+
+  <h1>Seguimiento de Objetivos</h1>
+  <p class="subtitle">Selecciona persona, ajusta los sliders y pulsa <strong>Guardar</strong>.</p>
+
+  <div class="selector-wrap">
+    <label for="person">Persona</label>
+    <select id="person">
+      <option value="">— Elige una persona —</option>
+    </select>
+  </div>
+
+  <div id="content"></div>
+
+  <div class="global-card">
+    <h2>Resumen global del equipo</h2>
+    <div id="globalList"></div>
+    <div class="global-total">
+      <div class="name">Promedio del equipo</div>
+      <div class="pct-small" id="globalTotal">0%</div>
+    </div>
+  </div>
+</div>
+
+<div class="save-bar" id="saveBar" style="display:none;">
+  <div class="save-status" id="saveStatus">Sin cambios</div>
+  <button class="btn" id="saveBtn" disabled>Guardar</button>
+</div>
+
+<script>
+const DATA = {
+  "Luis Vergara": {
+    retos: [
+      "Presentar Activos a internacional (Febrero)",
+      "4 Proyectos nuevos (Junio)"
+    ],
+    habilidades: [
+      "Venta (Febrero)",
+      "Estrategia (Abril)"
+    ]
+  },
+  "Alejandra": {
+    retos: [
+      "Aprender de varios módulos de WD (seguridad, recruiting en esade, etc)"
+    ],
+    habilidades: [
+      "Mejor toma de decisiones, no tener dudas por falta de confianza (antes de Marzo 2026)",
+      "Más autonomía (antes de Marzo 2026)"
+    ]
+  },
+  "Blanca": {
+    retos: [
+      "Entendimiento/Conocimiento técnico más completo de compensación (Marzo)",
+      "Capacidad técnica para desarrollar adaptive y proyectos nuevos (Junio)",
+      "Alguna Certificación"
+    ],
+    habilidades: [
+      "Más independencia en tareas (Febrero)",
+      "Más roles de responsabilidad, autonomía e independencia en gestión de cliente y desarrollo de proyecto (Junio)",
+      "Más organización en desarrollo de proyectos"
+    ]
+  },
+  "Claudia": {
+    retos: [
+      "Optimización Seguridad",
+      "Llevar más de un 50% de cosas vistas",
+      "Pablo Referente (Junio)",
+      "Montar 2 informes Octavio (Enero)"
+    ],
+    habilidades: [
+      "Formar a Pablo (Marzo)",
+      "Organización y priorizar — cumplir con lo que me pongo (Junio)"
+    ]
+  },
+  "Adrian": {
+    retos: [
+      "Entregar de manera satisfactoria la solución de AP a ESADE"
+    ],
+    habilidades: [
+      "Manejarme con fluidez e intención en WD",
+      "Obtener una visión global del proceso completo de una solución de WD (propuesta → go live)"
+    ]
+  },
+  "Manu": {
+    retos: [
+      "Implementación IBE todo controlado",
+      "Cliente de Picar (Febrero) — Internacional o BI"
+    ],
+    habilidades: [
+      "Story Telling (Junio)",
+      "Organización y Planificación",
+      "Mejora BI e IA (Técnico)",
+      "Guiar reunión con cliente complicado"
+    ]
+  },
+  "Jesús": {
+    retos: [
+      "Volver a encontrar \"el hambre\"",
+      "Completar con éxito formaciones a cliente"
+    ],
+    habilidades: [
+      "Construcción y conocimiento IA",
+      "Más conocimiento Prism"
+    ]
+  },
+  "Alba": {
+    retos: [
+      "Aprender y tener + autonomía con PRISM (antes de Junio)",
+      "Poder generar ideas de informes por mi cuenta (Junio)"
+    ],
+    habilidades: [
+      "Seguridad al hablar en reuniones",
+      "Mejor gestión del tiempo",
+      "Mejorar la organización de mis recursos"
+    ]
+  },
+  "Pablo": {
+    retos: [
+      "Independencia para realizar tareas cotidianas (Enero)"
+    ],
+    habilidades: [
+      "Más soltura a la hora de realizar las tareas",
+      "Mejorar habilidades para realizar PPT (Abril)"
+    ]
+  },
+  "Alvaro Gonzalez de Linares": {
+    retos: [
+      "Venta de compensación con éxito (Marzo)"
+    ],
+    habilidades: [
+      "Organización y planificación Comercial"
+    ]
+  }
+};
+
+const STORAGE_KEY = "eib-objetivos-v1";
+
+let saved = loadProgress();    // persisted state
+let draft = {};                // unsaved working copy of CURRENT person only
+let currentPerson = "";
+
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function saveProgress(p) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+}
+function goalKey(person, type, idx) {
+  return `${person}::${type}::${idx}`;
+}
+function getValue(person, type, idx) {
+  const k = goalKey(person, type, idx);
+  if (person === currentPerson && k in draft) return draft[k];
+  return saved[k] ?? 0;
+}
+function personAverage(person) {
+  const p = DATA[person];
+  if (!p) return 0;
+  const total = p.retos.length + p.habilidades.length;
+  if (total === 0) return 0;
+  let sum = 0;
+  p.retos.forEach((_, i) => sum += getValue(person, "retos", i));
+  p.habilidades.forEach((_, i) => sum += getValue(person, "habilidades", i));
+  return Math.round(sum / total);
+}
+function colorClass(pct) {
+  if (pct >= 70) return "success";
+  if (pct >= 40) return "warning";
+  return "danger";
+}
+
+function hasUnsavedChanges() {
+  return Object.keys(draft).some(k => (saved[k] ?? 0) !== draft[k]);
+}
+
+function updateSaveBar() {
+  const bar = document.getElementById("saveBar");
+  const btn = document.getElementById("saveBtn");
+  const status = document.getElementById("saveStatus");
+  if (!currentPerson) { bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  if (hasUnsavedChanges()) {
+    status.textContent = "Tienes cambios sin guardar";
+    status.className = "save-status dirty";
+    btn.disabled = false;
+  } else {
+    status.textContent = "Todo guardado";
+    status.className = "save-status saved";
+    btn.disabled = true;
+  }
+}
+
+function updateStatsInPlace() {
+  const avg = personAverage(currentPerson);
+  const p = DATA[currentPerson];
+  const total = p.retos.length + p.habilidades.length;
+  const completed =
+    p.retos.filter((_, i) => getValue(currentPerson, "retos", i) === 100).length +
+    p.habilidades.filter((_, i) => getValue(currentPerson, "habilidades", i) === 100).length;
+  const avgEl = document.getElementById("personAvg");
+  const cntEl = document.getElementById("personCount");
+  if (avgEl) {
+    avgEl.textContent = avg + "%";
+    avgEl.className = "stat-value " + colorClass(avg);
+  }
+  if (cntEl) cntEl.textContent = completed + " / " + total;
+}
+
+function renderPerson(person) {
+  currentPerson = person;
+  draft = {};
+  const content = document.getElementById("content");
+  if (!person) {
+    content.innerHTML = '<div class="empty">Elige una persona en el selector de arriba.</div>';
+    updateSaveBar();
+    return;
+  }
+  const p = DATA[person];
+  const avg = personAverage(person);
+  const total = p.retos.length + p.habilidades.length;
+  const completed =
+    p.retos.filter((_, i) => getValue(person, "retos", i) === 100).length +
+    p.habilidades.filter((_, i) => getValue(person, "habilidades", i) === 100).length;
+
+  content.innerHTML = `
+    <div class="summary">
+      <div class="stat">
+        <div class="stat-label">Progreso medio</div>
+        <div class="stat-value ${colorClass(avg)}" id="personAvg">${avg}%</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Cumplidos al 100%</div>
+        <div class="stat-value" id="personCount">${completed} / ${total}</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Retos</h2>
+      ${p.retos.map((g, i) => renderGoal(person, "retos", i, g, getValue(person, "retos", i))).join("")}
+    </div>
+
+    <div class="section">
+      <h2>Habilidades desarrolladas</h2>
+      ${p.habilidades.map((g, i) => renderGoal(person, "habilidades", i, g, getValue(person, "habilidades", i))).join("")}
+    </div>
+  `;
+
+  content.querySelectorAll('input[type="range"]').forEach(input => {
+    input.addEventListener("input", (e) => {
+      const { type, idx } = e.target.dataset;
+      const val = parseInt(e.target.value, 10);
+      const k = goalKey(currentPerson, type, parseInt(idx, 10));
+      draft[k] = val;
+      // update label in place, no full re-render
+      const pctEl = e.target.parentElement.querySelector(".pct");
+      if (pctEl) pctEl.textContent = val + "%";
+      updateStatsInPlace();
+      updateSaveBar();
+    });
+  });
+
+  updateSaveBar();
+}
+
+function renderGoal(person, type, idx, text, value) {
+  return `
+    <div class="goal">
+      <div class="goal-text">${text}</div>
+      <div class="goal-controls">
+        <input type="range" min="0" max="100" step="5" value="${value}"
+               data-type="${type}" data-idx="${idx}" />
+        <div class="pct">${value}%</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderGlobal() {
+  const list = document.getElementById("globalList");
+  const people = Object.keys(DATA);
+  const rows = people.map(name => {
+    const avg = personAverage(name);
+    const cls = colorClass(avg);
+    return `<div class="global-row">
+      <div class="name">${name}</div>
+      <div class="pct-small" style="color:var(--${cls});">${avg}%</div>
+    </div>`;
+  }).join("");
+  list.innerHTML = rows;
+  const total = Math.round(people.reduce((acc, n) => acc + personAverage(n), 0) / people.length);
+  document.getElementById("globalTotal").textContent = total + "%";
+}
+
+function commitSave() {
+  Object.assign(saved, draft);
+  saveProgress(saved);
+  draft = {};
+  updateSaveBar();
+  renderGlobal();
+  // flash status
+  const status = document.getElementById("saveStatus");
+  status.textContent = "✓ Guardado";
+  status.className = "save-status saved";
+}
+
+function onPersonChange(e) {
+  const next = e.target.value;
+  if (hasUnsavedChanges()) {
+    const ok = confirm("Tienes cambios sin guardar en " + currentPerson + ". ¿Descartar y cambiar de persona?");
+    if (!ok) {
+      e.target.value = currentPerson;
+      return;
+    }
+  }
+  renderPerson(next);
+}
+
+function init() {
+  const select = document.getElementById("person");
+  Object.keys(DATA).forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+  select.addEventListener("change", onPersonChange);
+  document.getElementById("saveBtn").addEventListener("click", commitSave);
+  window.addEventListener("beforeunload", (e) => {
+    if (hasUnsavedChanges()) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+  });
+  renderPerson("");
+  renderGlobal();
+}
+
+init();
+</script>
+</body>
+</html>
