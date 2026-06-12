@@ -217,6 +217,16 @@
     cursor: not-allowed;
     opacity: 0.6;
   }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border-strong);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: transparent;
+    color: var(--danger);
+    border-color: var(--danger);
+  }
 
   .global-card {
     background: linear-gradient(135deg, #1a1d24 0%, #232730 100%);
@@ -298,6 +308,7 @@
 
 <div class="save-bar" id="saveBar" style="display:none;">
   <div class="save-status" id="saveStatus">Sin cambios</div>
+  <button class="btn btn-ghost" id="resetBtn" type="button">Resetear</button>
   <button class="btn" id="saveBtn" disabled>Guardar</button>
 </div>
 
@@ -407,7 +418,7 @@ const DATA = {
   }
 };
 
-const STORAGE_KEY = "eib-objetivos-v1";
+const STORAGE_KEY = "eib-objetivos-v2";
 
 let saved = loadProgress();    // persisted state
 let draft = {};                // unsaved working copy of CURRENT person only
@@ -600,6 +611,15 @@ function init() {
   });
   select.addEventListener("change", onPersonChange);
   document.getElementById("saveBtn").addEventListener("click", commitSave);
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    const ok = confirm("¿Borrar todo el progreso guardado de todas las personas? Esta acción no se puede deshacer.");
+    if (!ok) return;
+    saved = {};
+    draft = {};
+    saveProgress(saved);
+    renderPerson(currentPerson);
+    renderGlobal();
+  });
   window.addEventListener("beforeunload", (e) => {
     if (hasUnsavedChanges()) {
       e.preventDefault();
