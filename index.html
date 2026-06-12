@@ -70,13 +70,25 @@
     max-width: 460px;
     aspect-ratio: 1 / 1;
     margin: 0 auto 48px;
-    background: #f4f6f8;
+    background: #e8ebef;
     border-radius: 8px;
     padding: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(134, 188, 37, 0.2);
+    border: 1px solid #d0d4da;
+    border-top: 4px solid var(--accent);
+    position: relative;
+  }
+  .hero-image::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: var(--accent);
   }
   .hero-image img {
     width: 100%;
