@@ -308,7 +308,6 @@
 
 <div class="save-bar" id="saveBar" style="display:none;">
   <div class="save-status" id="saveStatus">Sin cambios</div>
-  <button class="btn btn-ghost" id="resetBtn" type="button">Resetear</button>
   <button class="btn" id="saveBtn" disabled>Guardar</button>
 </div>
 
@@ -611,15 +610,6 @@ function init() {
   });
   select.addEventListener("change", onPersonChange);
   document.getElementById("saveBtn").addEventListener("click", commitSave);
-  document.getElementById("resetBtn").addEventListener("click", () => {
-    const ok = confirm("¿Borrar todo el progreso guardado de todas las personas? Esta acción no se puede deshacer.");
-    if (!ok) return;
-    saved = {};
-    draft = {};
-    saveProgress(saved);
-    renderPerson(currentPerson);
-    renderGlobal();
-  });
   window.addEventListener("beforeunload", (e) => {
     if (hasUnsavedChanges()) {
       e.preventDefault();
