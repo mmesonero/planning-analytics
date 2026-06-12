@@ -417,18 +417,50 @@ const DATA = {
   }
 };
 
-const STORAGE_KEY = "eib-objetivos-v2";
+// ⚠️ Cuando despliegues el backend, pega aquí la URL (acaba en /exec)
+// Si lo dejas vacío, cada navegador guarda solo lo suyo (modo localStorage)
+const BACKEND_URL = "";
 
-let saved = loadProgress();    // persisted state
-let draft = {};                // unsaved working copy of CURRENT person only
+const STORAGE_KEY = "eib-objetivos-v2";
+const HAS_BACKEND = BACKEND_URL && BACKEND_URL.endsWith("/exec");
+
+let saved = {};      // persisted state (memory cache)
+let draft = {};      // unsaved working copy of CURRENT person only
 let currentPerson = "";
 
-function loadProgress() {
+function loadFromLocal() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
   catch (e) { return {}; }
 }
-function saveProgress(p) {
+function persistToLocal(p) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+}
+async function loadProgress() {
+  if (!HAS_BACKEND) return loadFromLocal();
+  try {
+    const r = await fetch(BACKEND_URL + "?_=" + Date.now(), { cache: "no-store" });
+    const data = await r.json();
+    return data.progress || {};
+  } catch (e) {
+    console.error("Backend load fallo, uso local:", e);
+    return loadFromLocal();
+  }
+}
+async function saveProgress(p) {
+  persistToLocal(p); // siempre cachea local también
+  if (!HAS_BACKEND) return true;
+  const updates = Object.keys(p).map(k => ({ key: k, value: p[k] }));
+  try {
+    await fetch(BACKEND_URL, {
+      method: "POST",
+      body: JSON.stringify({ updates })
+      // sin Content-Type → text/plain → evita preflight CORS
+    });
+    return true;
+  } catch (e) {
+    console.error("Backend save fallo:", e);
+    return false;
+  }
 }
 function goalKey(person, type, idx) {
   return `${person}::${type}::${idx}`;
@@ -576,15 +608,18 @@ function renderGlobal() {
   document.getElementById("globalTotal").textContent = total + "%";
 }
 
-function commitSave() {
+async function commitSave() {
   Object.assign(saved, draft);
-  saveProgress(saved);
+  const btn = document.getElementById("saveBtn");
+  const status = document.getElementById("saveStatus");
+  btn.disabled = true;
+  status.textContent = "Guardando…";
+  status.className = "save-status";
+  const ok = await saveProgress(saved);
   draft = {};
   updateSaveBar();
   renderGlobal();
-  // flash status
-  const status = document.getElementById("saveStatus");
-  status.textContent = "✓ Guardado";
+  status.textContent = ok ? "✓ Guardado" : "⚠ Guardado solo local";
   status.className = "save-status saved";
 }
 
@@ -600,7 +635,7 @@ function onPersonChange(e) {
   renderPerson(next);
 }
 
-function init() {
+async function init() {
   const select = document.getElementById("person");
   Object.keys(DATA).forEach(name => {
     const opt = document.createElement("option");
@@ -616,6 +651,8 @@ function init() {
       e.returnValue = "";
     }
   });
+  // Carga inicial de progreso (backend o local)
+  saved = await loadProgress();
   renderPerson("");
   renderGlobal();
 }
