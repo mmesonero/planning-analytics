@@ -17,6 +17,8 @@
     --accent: #86BC25;
     --accent-hover: #b5dc42;
     --accent-glow: rgba(134, 188, 37, 0.25);
+    --warning: #f5b800;
+    --danger: #da291c;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -50,7 +52,36 @@
   .back-link:hover { color: var(--text); }
 
   h1 { font-size: 2rem; font-weight: 600; margin-bottom: 8px; line-height: 1.2; }
-  .subtitle { color: var(--muted); margin-bottom: 32px; }
+  .subtitle { color: var(--muted); margin-bottom: 24px; }
+
+  .status-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--muted);
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .status-bar.ok { border-left-color: var(--accent); color: var(--text); }
+  .status-bar.warn { border-left-color: var(--warning); color: var(--warning); }
+  .status-bar.error { border-left-color: var(--danger); color: var(--danger); }
+  .status-bar button.refresh {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .status-bar button.refresh:hover { color: var(--text); border-color: var(--accent); }
 
   .step {
     background: var(--card);
@@ -107,6 +138,7 @@
     padding-right: 40px;
   }
   select:focus { outline: none; border-color: var(--accent); }
+  select:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .prompt-box {
     background: var(--bg-soft);
@@ -148,20 +180,23 @@
     text-decoration: none;
     font-family: inherit;
   }
-  .btn:hover {
+  .btn:hover:not(:disabled) {
     background-color: #b5dc42 !important;
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(134, 188, 37, 0.5);
   }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn.ghost {
     background-color: transparent !important;
     color: var(--text) !important;
     border: 1px solid var(--border-strong);
   }
-  .btn.ghost:hover {
+  .btn.ghost:hover:not(:disabled) {
     background-color: transparent !important;
     border-color: var(--accent);
     color: var(--accent) !important;
+    box-shadow: none;
+    transform: none;
   }
   .btn.copied {
     background-color: #4a7c0e !important;
@@ -188,6 +223,21 @@
   .ai-link .ai-name { font-weight: 600; font-size: 1rem; margin-bottom: 4px; }
   .ai-link .ai-sub { color: var(--muted); font-size: 0.8rem; }
 
+  details {
+    margin-top: 14px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 16px;
+  }
+  details summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  details summary:hover { color: var(--text); }
+  details ol { margin: 10px 0 0 20px; font-size: 0.85rem; color: var(--muted); line-height: 1.7; }
+
   @media (max-width: 600px) {
     .ai-links { grid-template-columns: 1fr; }
     h1 { font-size: 1.6rem; }
@@ -201,26 +251,38 @@
   </div>
 
   <h1>Plan de Acción con IA</h1>
-  <p class="subtitle">Genera tu plan personalizado a partir de tus objetivos y úsalo con ChatGPT, Claude o Copilot.</p>
+  <p class="subtitle">Tu plan personalizado a partir de los objetivos que rellenas en el cuestionario.</p>
+
+  <div class="status-bar" id="statusBar">
+    <span id="statusText">Cargando respuestas del cuestionario…</span>
+    <button class="refresh" id="refreshBtn">↻ Recargar</button>
+  </div>
 
   <div class="step">
     <div class="step-num">PASO 1</div>
     <h2>Elige quién eres</h2>
-    <div class="desc">Cargamos tus retos y habilidades del cuestionario.</div>
+    <div class="desc">Aparecen solo las personas que ya han respondido el cuestionario.</div>
     <label for="person">Persona</label>
-    <select id="person">
-      <option value="">— Elige una persona —</option>
+    <select id="person" disabled>
+      <option value="">— Cargando… —</option>
     </select>
+    <details>
+      <summary>¿No aparezco en la lista?</summary>
+      <ol>
+        <li>Abre el <strong>cuestionario</strong> desde el panel (banner verde).</li>
+        <li>Rellena y envía tu respuesta.</li>
+        <li>Vuelve aquí y pulsa <strong>↻ Recargar</strong>.</li>
+      </ol>
+    </details>
   </div>
 
   <div class="step">
     <div class="step-num">PASO 2</div>
     <h2>Copia este prompt</h2>
-    <div class="desc">Generado automáticamente con tus objetivos. Lo pegas tal cual en la IA que prefieras.</div>
+    <div class="desc">Generado con tus retos y habilidades del cuestionario. Lo pegas tal cual en la IA que prefieras.</div>
     <div class="prompt-box" id="promptBox"><div class="prompt-empty">Elige una persona arriba para generar el prompt.</div></div>
     <div class="btn-row">
       <button class="btn" id="copyBtn" disabled>📋 Copiar prompt</button>
-      <button class="btn ghost" id="regenBtn" disabled>↻ Regenerar</button>
     </div>
   </div>
 
@@ -242,155 +304,191 @@
 </div>
 
 <script>
-const DATA = {
-  "Luis": {
-    retos: ["Presentar Activos a internacional (Febrero)", "4 Proyectos nuevos (Junio)"],
-    habilidades: ["Venta (Febrero)", "Estrategia (Abril)"]
-  },
-  "Alejandra": {
-    retos: ["Aprender de varios módulos de WD (seguridad, recruiting en esade, etc)"],
-    habilidades: [
-      "Mejor toma de decisiones, no tener dudas por falta de confianza (antes de Marzo 2026)",
-      "Más autonomía (antes de Marzo 2026)"
-    ]
-  },
-  "Blanca": {
-    retos: [
-      "Entendimiento/Conocimiento técnico más completo de compensación (Marzo)",
-      "Capacidad técnica para desarrollar adaptive y proyectos nuevos (Junio)",
-      "Alguna Certificación"
-    ],
-    habilidades: [
-      "Más independencia en tareas (Febrero)",
-      "Más roles de responsabilidad, autonomía e independencia en gestión de cliente y desarrollo de proyecto (Junio)",
-      "Más organización en desarrollo de proyectos"
-    ]
-  },
-  "Claudia": {
-    retos: [
-      "Optimización Seguridad",
-      "Llevar más de un 50% de cosas vistas",
-      "Pablo Referente (Junio)",
-      "Montar 2 informes Octavio (Enero)"
-    ],
-    habilidades: [
-      "Formar a Pablo (Marzo)",
-      "Organización y priorizar — cumplir con lo que me pongo (Junio)"
-    ]
-  },
-  "Adrian": {
-    retos: ["Entregar de manera satisfactoria la solución de AP a ESADE"],
-    habilidades: [
-      "Manejarme con fluidez e intención en WD",
-      "Obtener una visión global del proceso completo de una solución de WD (propuesta → go live)"
-    ]
-  },
-  "Manu": {
-    retos: ["Implementación IBE todo controlado", "Cliente de Picar (Febrero) — Internacional o BI"],
-    habilidades: [
-      "Story Telling (Junio)",
-      "Organización y Planificación",
-      "Mejora BI e IA (Técnico)",
-      "Guiar reunión con cliente complicado"
-    ]
-  },
-  "Jesús": {
-    retos: ["Volver a encontrar \"el hambre\"", "Completar con éxito formaciones a cliente"],
-    habilidades: ["Construcción y conocimiento IA", "Más conocimiento Prism"]
-  },
-  "Alba": {
-    retos: ["Aprender y tener + autonomía con PRISM (antes de Junio)", "Poder generar ideas de informes por mi cuenta (Junio)"],
-    habilidades: ["Seguridad al hablar en reuniones", "Mejor gestión del tiempo", "Mejorar la organización de mis recursos"]
-  },
-  "Pablo": {
-    retos: ["Independencia para realizar tareas cotidianas (Enero)"],
-    habilidades: ["Más soltura a la hora de realizar las tareas", "Mejorar habilidades para realizar PPT (Abril)"]
-  },
-  "Alvaro": {
-    retos: ["Venta de compensación con éxito (Marzo)"],
-    habilidades: ["Organización y planificación Comercial"]
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1EtrDQwfxlRcdGGo_eU4zTHYE4Ih6LDxpzJ5sr-c_bHI/export?format=csv&gid=474424277';
+
+const COL_NAME = '¿Quién eres?';
+const COL_NEW_NAME = 'Si eres nueva incorporación, escribe tu nombre';
+
+let responses = [];
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { field += c; }
+    } else {
+      if (c === '"') { inQuotes = true; }
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else { field += c; }
+    }
   }
-};
-
-function buildPrompt(person) {
-  const p = DATA[person];
-  if (!p) return "";
-  const retos = p.retos.map((r, i) => `${i + 1}. ${r}`).join("\n");
-  const habilidades = p.habilidades.map((h, i) => `${i + 1}. ${h}`).join("\n");
-
-  return `Actúa como mi coach de desarrollo profesional dentro del equipo de Planning & Analytics.
-
-Soy ${person}. Estos son mis objetivos para los próximos 6 meses:
-
-RETOS A ALCANZAR:
-${retos}
-
-HABILIDADES A DESARROLLAR:
-${habilidades}
-
-Construye un PLAN DE ACCIÓN concreto y realista con:
-
-1. Diagnóstico breve: qué bloqueos típicos puedo encontrar y cómo mitigarlos.
-2. Roadmap mes a mes (6 meses), con hitos medibles para cada reto y habilidad.
-3. Rutinas semanales: máximo 3 hábitos clave que me llevarán hacia los objetivos.
-4. Recursos sugeridos: libros, cursos, herramientas (incluyendo IA) y personas con las que apoyarme.
-5. Métricas de seguimiento: cómo sabré cada mes que voy por buen camino.
-6. 3 preguntas críticas que debo hacerme cada viernes para auto-evaluarme.
-
-Sé directo, prioriza lo que tendrá más impacto y evita generalidades. Si necesitas más contexto sobre mi rol o mi día a día, pregúntame antes de generar el plan.`;
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  return rows;
 }
 
-const promptBox = document.getElementById("promptBox");
-const copyBtn = document.getElementById("copyBtn");
-const regenBtn = document.getElementById("regenBtn");
-const select = document.getElementById("person");
+function setStatus(text, cls) {
+  const bar = document.getElementById('statusBar');
+  document.getElementById('statusText').textContent = text;
+  bar.className = 'status-bar' + (cls ? ' ' + cls : '');
+}
 
-Object.keys(DATA).forEach(name => {
-  const opt = document.createElement("option");
-  opt.value = name;
-  opt.textContent = name;
-  select.appendChild(opt);
-});
+function getName(resp) {
+  let name = (resp[COL_NAME] || '').trim();
+  const nuevo = (resp[COL_NEW_NAME] || '').trim();
+  if (name.includes('Nueva') && nuevo) return nuevo;
+  return name;
+}
 
-let currentPrompt = "";
+function populateDropdown(names) {
+  const select = document.getElementById('person');
+  select.innerHTML = '<option value="">— Elige una persona —</option>';
+  names.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+  select.disabled = names.length === 0;
+}
 
-function render(person) {
+function findRetosHabilidades(resp) {
+  const retos = [];
+  const habs = [];
+  Object.keys(resp).forEach(key => {
+    const v = (resp[key] || '').trim();
+    if (!v) return;
+    const k = key.trim().toLowerCase();
+    if (k.startsWith('reto ')) retos.push({ key, v });
+    else if (k.startsWith('habilidad ')) habs.push({ key, v });
+  });
+  // sort by numeric suffix
+  const numSort = (a, b) => {
+    const na = parseInt(a.key.match(/\d+/)?.[0] || '0', 10);
+    const nb = parseInt(b.key.match(/\d+/)?.[0] || '0', 10);
+    return na - nb;
+  };
+  return {
+    retos: retos.sort(numSort).map(x => x.v),
+    habs: habs.sort(numSort).map(x => x.v)
+  };
+}
+
+function buildPrompt(person) {
+  // most recent response for that person (last in the array)
+  const personResponses = responses.filter(r => getName(r) === person);
+  if (!personResponses.length) return '';
+  const r = personResponses[personResponses.length - 1];
+  const { retos, habs } = findRetosHabilidades(r);
+
+  const retosList = retos.length
+    ? retos.map((x, i) => (i + 1) + '. ' + x).join('\n')
+    : '(sin retos indicados)';
+  const habsList = habs.length
+    ? habs.map((x, i) => (i + 1) + '. ' + x).join('\n')
+    : '(sin habilidades indicadas)';
+
+  return 'Actúa como mi coach de desarrollo profesional dentro del equipo de Planning & Analytics.\n\n' +
+    'Soy ' + person + '. Estos son mis objetivos para los próximos 6 meses:\n\n' +
+    'RETOS A ALCANZAR:\n' + retosList + '\n\n' +
+    'HABILIDADES A DESARROLLAR:\n' + habsList + '\n\n' +
+    'Construye un PLAN DE ACCIÓN concreto y realista con:\n\n' +
+    '1. Diagnóstico breve: qué bloqueos típicos puedo encontrar y cómo mitigarlos.\n' +
+    '2. Roadmap mes a mes (6 meses), con hitos medibles para cada reto y habilidad.\n' +
+    '3. Rutinas semanales: máximo 3 hábitos clave que me llevarán hacia los objetivos.\n' +
+    '4. Recursos sugeridos: libros, cursos, herramientas (incluyendo IA) y personas con las que apoyarme.\n' +
+    '5. Métricas de seguimiento: cómo sabré cada mes que voy por buen camino.\n' +
+    '6. 3 preguntas críticas que debo hacerme cada viernes para auto-evaluarme.\n\n' +
+    'Sé directo, prioriza lo que tendrá más impacto y evita generalidades. Si necesitas más contexto sobre mi rol o mi día a día, pregúntame antes de generar el plan.';
+}
+
+let currentPrompt = '';
+function renderPrompt(person) {
+  const promptBox = document.getElementById('promptBox');
+  const copyBtn = document.getElementById('copyBtn');
   if (!person) {
     promptBox.innerHTML = '<div class="prompt-empty">Elige una persona arriba para generar el prompt.</div>';
     copyBtn.disabled = true;
-    regenBtn.disabled = true;
-    currentPrompt = "";
+    currentPrompt = '';
     return;
   }
   currentPrompt = buildPrompt(person);
+  if (!currentPrompt) {
+    promptBox.innerHTML = '<div class="prompt-empty">No se encontró respuesta para ' + person + '.</div>';
+    copyBtn.disabled = true;
+    return;
+  }
   promptBox.textContent = currentPrompt;
   copyBtn.disabled = false;
-  regenBtn.disabled = false;
 }
 
-select.addEventListener("change", e => render(e.target.value));
+async function loadResponses() {
+  setStatus('Cargando respuestas del cuestionario…');
+  document.getElementById('person').disabled = true;
+  document.getElementById('person').innerHTML = '<option value="">— Cargando… —</option>';
+  try {
+    const r = await fetch(SHEET_CSV_URL + '&_=' + new Date().getTime(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const text = await r.text();
+    const rows = parseCSV(text).filter(row => row.some(c => c && c.trim()));
+    if (rows.length < 2) {
+      setStatus('Sin respuestas todavía. Rellena el cuestionario primero.', 'warn');
+      populateDropdown([]);
+      return;
+    }
+    const headers = rows[0].map(h => h.trim());
+    responses = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = (row[i] || '').trim());
+      return obj;
+    });
+    // unique names (keep order of first appearance)
+    const names = [];
+    responses.forEach(resp => {
+      const n = getName(resp);
+      if (n && !names.includes(n)) names.push(n);
+    });
+    names.sort();
+    populateDropdown(names);
+    setStatus(responses.length + ' respuestas cargadas · ' + names.length + ' personas.', 'ok');
+  } catch (e) {
+    console.error(e);
+    setStatus('No se pudo cargar la hoja. Comparte el spreadsheet como "Cualquier persona con el enlace puede ver" y pulsa Recargar.', 'error');
+    populateDropdown([]);
+  }
+}
 
-copyBtn.addEventListener("click", async () => {
+document.getElementById('person').addEventListener('change', e => renderPrompt(e.target.value));
+document.getElementById('refreshBtn').addEventListener('click', () => loadResponses());
+
+const copyBtn = document.getElementById('copyBtn');
+copyBtn.addEventListener('click', async () => {
   if (!currentPrompt) return;
   try {
     await navigator.clipboard.writeText(currentPrompt);
-    copyBtn.classList.add("copied");
-    copyBtn.textContent = "✓ Copiado";
+    copyBtn.classList.add('copied');
+    copyBtn.textContent = '✓ Copiado';
     setTimeout(() => {
-      copyBtn.classList.remove("copied");
-      copyBtn.textContent = "📋 Copiar prompt";
+      copyBtn.classList.remove('copied');
+      copyBtn.textContent = '📋 Copiar prompt';
     }, 1800);
   } catch (e) {
-    // fallback selección manual
     const range = document.createRange();
-    range.selectNodeContents(promptBox);
+    range.selectNodeContents(document.getElementById('promptBox'));
     const sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(range);
   }
 });
 
-regenBtn.addEventListener("click", () => render(select.value));
+loadResponses();
 </script>
 </body>
 </html>
